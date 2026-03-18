@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MQTT Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #1a1d24;
+    --border: #252830;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --green: #00ff88;
+    --red: #ff4466;
+    --yellow: #ffd700;
+    --text: #e8eaf0;
+    --muted: #5a6070;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--muted); }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .status-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot.error { background: var(--red); box-shadow: 0 0 12px var(--red); }
+  .status-dot.connecting {
+    background: var(--yellow);
+    animation: blink 0.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .status-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    flex: 1;
+  }
+
+  .status-text strong { color: var(--text); font-weight: 400; }
+
+  .broker-info {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    padding: 4px 10px;
+    background: var(--surface2);
+    border-radius: 4px;
+  }
+
+  /* Main grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .topic-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .tag-text { background: rgba(0,212,255,0.1); color: var(--accent); }
+  .tag-audio { background: rgba(124,58,237,0.15); color: #a78bfa; }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--muted);
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .card-body { padding: 16px 18px; }
+
+  /* Text Messages */
+  #msg-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  #msg-list::-webkit-scrollbar { width: 4px; }
+  #msg-list::-webkit-scrollbar-track { background: transparent; }
+  #msg-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 7px;
+    border-left: 2px solid var(--accent);
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+
+  .msg-content {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .empty-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Audio */
+  #audio-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  #audio-list::-webkit-scrollbar { width: 4px; }
+  #audio-list::-webkit-scrollbar-track { background: transparent; }
+  #audio-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .audio-item {
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 7px;
+    border-left: 2px solid #7c3aed;
+    animation: slideIn 0.25s ease;
+  }
+
+  .audio-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .audio-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .audio-size {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  audio {
+    width: 100%;
+    height: 28px;
+    filter: invert(1) hue-rotate(180deg);
+    opacity: 0.8;
+  }
+
+  /* History Table */
+  .history-card { grid-column: 1 / -1; }
+
+  #history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  #history-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #history-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(37,40,48,0.6);
+    vertical-align: middle;
+  }
+
+  #history-table tr:last-child td { border-bottom: none; }
+
+  #history-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .topic-cell {
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .payload-cell {
+    color: var(--text);
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .time-cell { color: var(--muted); font-size: 11px; }
+
+  .no-data {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.purple { color: #a78bfa; }
+
+  /* Clear button */
+  .btn-clear {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">MQTT <span>/</span> MONITOR</div>
+    <h1>IoT Dashboard</h1>
+    <div class="broker-info" id="broker-label">broker.hivemq.com : 8083</div>
+  </header>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="status-text" id="status-text">正在连接到 <strong>broker.hivemq.com</strong>...</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">文字消息</div>
+      <div class="stat-value accent" id="count-text">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">音频包</div>
+      <div class="stat-value purple" id="count-audio">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">总消息数</div>
+      <div class="stat-value" id="count-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">运行时间</div>
+      <div class="stat-value" id="uptime" style="font-size:18px">00:00</div>
+    </div>
+  </div>
+
+  <!-- Main panels -->
+  <div class="grid">
+
+    <!-- Text messages -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">文字消息</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="topic-tag tag-text">test4</span>
+          <span class="badge" id="badge-text">0</span>
+          <button class="btn-clear" onclick="clearText()">清空</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul id="msg-list">
+          <li class="empty-hint" id="text-empty">等待消息...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Audio -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">音频数据</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="topic-tag tag-audio">test/audio</span>
+          <span class="badge" id="badge-audio">0</span>
+          <button class="btn-clear" onclick="clearAudio()">清空</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul id="audio-list">
+          <li class="empty-hint" id="audio-empty">等待音频...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card history-card">
+      <div class="card-header">
+        <span class="card-title">历史记录</span>
+        <button class="btn-clear" onclick="clearHistory()">清空</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>Topic</th>
+              <th>内容 / 描述</th>
+              <th>大小</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td class="no-data" colspan="4">暂无数据</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ============ Config ============
+const BROKER_HOST = 'broker.hivemq.com';
+const BROKER_WS_PORT = 8083; // WebSocket (非加密)
+const TOPICS = ['test4', 'test/audio'];
+const MAX_TEXT = 50;
+const MAX_AUDIO = 10;
+const MAX_HISTORY = 100;
+
+// ============ State ============
+let textCount = 0, audioCount = 0, totalCount = 0;
+let startTime = Date.now();
+let historyRows = [];
+
+// ============ Uptime ============
+setInterval(() => {
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(s / 60), sec = s % 60;
+  document.getElementById('uptime').textContent =
+    String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}, 1000);
+
+// ============ MQTT Connect ============
+const clientId = 'webui_' + Math.random().toString(16).slice(2, 8);
+const url = `ws://${BROKER_HOST}:${BROKER_WS_PORT}/mqtt`;
+
+setStatus('connecting', `正在连接 ${BROKER_HOST}...`);
+
+const client = mqtt.connect(url, {
+  clientId,
+  clean: true,
+  connectTimeout: 10000,
+  reconnectPeriod: 3000,
+});
+
+client.on('connect', () => {
+  setStatus('connected', `已连接到 ${BROKER_HOST} — ClientID: ${clientId}`);
+  TOPICS.forEach(t => client.subscribe(t));
+});
+
+client.on('reconnect', () => {
+  setStatus('connecting', `重新连接中...`);
+});
+
+client.on('error', (err) => {
+  setStatus('error', `连接错误: ${err.message}`);
+});
+
+client.on('offline', () => {
+  setStatus('error', '已断开连接，尝试重连...');
+});
+
+client.on('message', (topic, payload) => {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-CN', {hour12: false});
+  totalCount++;
+  document.getElementById('count-total').textContent = totalCount;
+
+  if (topic === 'test4') {
+    handleText(payload, timeStr);
+  } else if (topic === 'test/audio') {
+    handleAudio(payload, timeStr);
+  }
+
+  addHistory(topic, payload, timeStr);
+});
+
+// ============ Text Handler ============
+function handleText(payload, timeStr) {
+  const text = new TextDecoder('utf-8').decode(payload);
+  textCount++;
+  document.getElementById('count-text').textContent = textCount;
+  document.getElementById('badge-text').textContent = textCount;
+
+  const empty = document.getElementById('text-empty');
+  if (empty) empty.remove();
+
+  const list = document.getElementById('msg-list');
+  const li = document.createElement('li');
+  li.className = 'msg-item';
+  li.innerHTML = `
+    <span class="msg-time">${timeStr}</span>
+    <span class="msg-content">${escHtml(text)}</span>
+  `;
+  list.prepend(li);
+
+  // 限制条数
+  while (list.children.length > MAX_TEXT) {
+    list.removeChild(list.lastChild);
+  }
+}
+
+// ============ Audio Handler ============
+function handleAudio(payload, timeStr) {
+  audioCount++;
+  document.getElementById('count-audio').textContent = audioCount;
+  document.getElementById('badge-audio').textContent = audioCount;
+
+  const empty = document.getElementById('audio-empty');
+  if (empty) empty.remove();
+
+  const blob = new Blob([payload], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const sizeKb = (payload.byteLength / 1024).toFixed(1);
+
+  const list = document.getElementById('audio-list');
+  const li = document.createElement('li');
+  li.className = 'audio-item';
+  li.innerHTML = `
+    <div class="audio-meta">
+      <span class="audio-label">音频 #${audioCount} &nbsp;${timeStr}</span>
+      <span class="audio-size">${sizeKb} KB</span>
+    </div>
+    <audio controls src="${url}"></audio>
+  `;
+  list.prepend(li);
+
+  while (list.children.length > MAX_AUDIO) {
+    const old = list.removeChild(list.lastChild);
+    const oldAudio = old.querySelector('audio');
+    if (oldAudio) URL.revokeObjectURL(oldAudio.src);
+  }
+}
+
+// ============ History ============
+function addHistory(topic, payload, timeStr) {
+  const tbody = document.getElementById('history-body');
+
+  // 移除 "暂无数据"
+  const noData = tbody.querySelector('.no-data');
+  if (noData) noData.closest('tr').remove();
+
+  let desc, sizeStr;
+  if (topic === 'test4') {
+    desc = escHtml(new TextDecoder('utf-8').decode(payload));
+    sizeStr = payload.byteLength + ' B';
+  } else {
+    desc = '[音频数据]';
+    sizeStr = (payload.byteLength / 1024).toFixed(1) + ' KB';
+  }
+
+  const tagClass = topic === 'test4' ? 'tag-text' : 'tag-audio';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="time-cell">${timeStr}</td>
+    <td><span class="topic-cell ${tagClass}">${escHtml(topic)}</span></td>
+    <td class="payload-cell">${desc}</td>
+    <td class="time-cell">${sizeStr}</td>
+  `;
+  tbody.prepend(tr);
+
+  while (tbody.rows.length > MAX_HISTORY) {
+    tbody.removeChild(tbody.lastChild);
+  }
+}
+
+// ============ Helpers ============
+function setStatus(state, msg) {
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  dot.className = 'status-dot ' + state;
+  text.innerHTML = msg.replace(/(broker\.\S+|ClientID:\s*\S+)/g, '<strong>$1</strong>');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function clearText() {
+  const list = document.getElementById('msg-list');
+  list.innerHTML = '<li class="empty-hint" id="text-empty">等待消息...</li>';
+  textCount = 0;
+  document.getElementById('count-text').textContent = 0;
+  document.getElementById('badge-text').textContent = 0;
+}
+
+function clearAudio() {
+  const list = document.getElementById('audio-list');
+  list.querySelectorAll('audio').forEach(a => URL.revokeObjectURL(a.src));
+  list.innerHTML = '<li class="empty-hint" id="audio-empty">等待音频...</li>';
+  audioCount = 0;
+  document.getElementById('count-audio').textContent = 0;
+  document.getElementById('badge-audio').textContent = 0;
+}
+
+function clearHistory() {
+  document.getElementById('history-body').innerHTML =
+    '<tr><td class="no-data" colspan="4">暂无数据</td></tr>';
+}
+</script>
+</body>
+</html>
