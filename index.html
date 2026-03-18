@@ -37,20 +37,13 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
 
+  /* Nav */
   .topnav {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 28px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 28px; height: 56px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
-
   .nav-left { display: flex; align-items: center; gap: 10px; }
   .nav-logo { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; }
   .nav-sep { color: var(--border2); font-size: 18px; }
@@ -59,11 +52,23 @@
 
   .container { max-width: 1160px; margin: 0 auto; padding: 24px 20px; }
 
+  /* Status bar */
   .status-bar {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 12px;
     padding: 12px 18px; background: var(--surface);
     border: 1px solid var(--border); border-radius: var(--radius);
-    margin-bottom: 20px; box-shadow: var(--shadow);
+    margin-bottom: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .status-ripple {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--green); transition: background 0.3s;
+  }
+  .status-ripple.connecting { background: var(--yellow); animation: rippleBar 1.2s infinite; }
+  .status-ripple.error { background: var(--red); }
+  .status-ripple.connected { background: var(--green); animation: rippleBar 3s infinite; }
+  @keyframes rippleBar {
+    0%,100% { opacity:1; box-shadow: 2px 0 12px currentColor; }
+    50% { opacity:0.3; box-shadow: none; }
   }
 
   .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted2); flex-shrink: 0; transition: all 0.3s; }
@@ -71,27 +76,35 @@
   .status-dot.error { background: var(--red); box-shadow: 0 0 0 3px var(--red-bg); }
   .status-dot.connecting { background: var(--yellow); box-shadow: 0 0 0 3px var(--yellow-bg); animation: blink 0.9s infinite; }
 
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
   .status-text { font-size: 13px; color: var(--muted); flex: 1; }
   .status-text strong { color: var(--text); font-weight: 500; }
 
+  /* Stats */
   .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   .stat-label { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
-  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1; }
+  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1; transition: transform 0.1s; }
   .stat-value.blue { color: var(--accent); }
   .stat-value.purple { color: var(--purple); }
   .stat-value.green { color: var(--green); }
   .stat-value.dark { color: var(--text); }
+  .stat-value.bump { animation: bump 0.3s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)} }
 
+  /* Grid */
   .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .span-2 { grid-column: 1 / -1; }
 
+  /* Cards */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-
   .card-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid var(--border); }
   .card-title { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; align-items: center; gap: 8px; }
@@ -108,38 +121,90 @@
 
   .card-body { padding: 14px 16px; }
 
+  /* Text message list */
   .msg-list { list-style: none; display: flex; flex-direction: column; gap: 6px; min-height: 180px; max-height: 300px; overflow-y: auto; }
   .msg-list::-webkit-scrollbar { width: 4px; }
   .msg-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-  .msg-item { display: flex; gap: 10px; padding: 9px 12px; background: var(--surface2); border-radius: 8px; border-left: 3px solid var(--accent); animation: slideIn 0.2s ease; }
-  .msg-item.purple { border-left-color: var(--purple); }
-  .msg-item.green { border-left-color: var(--green); }
-
-  @keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+  .msg-item {
+    display: flex; gap: 10px; padding: 9px 12px;
+    background: var(--surface2); border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    animation: slideIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
 
   .msg-time { font-family: var(--mono); font-size: 10px; color: var(--muted2); flex-shrink: 0; padding-top: 1px; min-width: 64px; }
   .msg-content { font-family: var(--mono); font-size: 12px; color: var(--text); word-break: break-all; line-height: 1.5; }
+  /* Typewriter for newest message */
+  .msg-content.typing { overflow: hidden; white-space: nowrap; animation: typewriter 0.4s steps(40,end); }
+  @keyframes typewriter { from{width:0} to{width:100%} }
 
   .empty-hint { display: flex; align-items: center; justify-content: center; height: 180px; font-size: 12px; color: var(--muted2); }
 
-  .audio-item { padding: 11px 12px; background: var(--surface2); border-radius: 8px; border-left: 3px solid var(--purple); margin-bottom: 6px; animation: slideIn 0.2s ease; }
+  /* ===== ADC Datastream Chart ===== */
+  .chart-wrap {
+    position: relative; background: var(--surface2);
+    border-radius: 10px; padding: 10px 12px 8px; margin-bottom: 8px;
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .chart-label { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .chart-val {
+    font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--green);
+    transition: all 0.2s;
+  }
+  .chart-val.flash { animation: flashGreen 0.3s ease; }
+  @keyframes flashGreen { 0%{color:var(--green);transform:scale(1)} 30%{color:#34d399;transform:scale(1.1)} 100%{color:var(--green);transform:scale(1)} }
+
+  canvas#hrCanvas { display: block; width: 100%; height: 100px; border-radius: 6px; }
+
+  .chart-axis { display: flex; justify-content: space-between; margin-top: 4px; }
+  .chart-axis span { font-family: var(--mono); font-size: 9px; color: var(--muted2); }
+
+  /* Sparkline stats */
+  .hr-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 8px; }
+  .hr-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .hr-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .hr-stat-val { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text2); }
+
+  /* Audio */
+  .audio-item {
+    padding: 11px 14px; background: var(--surface2); border-radius: 8px;
+    border-left: 3px solid var(--purple); margin-bottom: 6px;
+    animation: audioIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes audioIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
   .audio-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
   .audio-label { font-size: 11px; font-weight: 500; color: var(--text2); }
   .audio-size { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+  /* Audio wave indicator (decorative) */
+  .audio-wave { display: flex; align-items: center; gap: 2px; height: 16px; margin-bottom: 6px; }
+  .audio-wave span {
+    display: inline-block; width: 3px; border-radius: 2px; background: var(--purple);
+    animation: wave 0.8s ease-in-out infinite;
+  }
+  .audio-wave span:nth-child(1){height:6px;animation-delay:0s}
+  .audio-wave span:nth-child(2){height:12px;animation-delay:0.1s}
+  .audio-wave span:nth-child(3){height:9px;animation-delay:0.2s}
+  .audio-wave span:nth-child(4){height:14px;animation-delay:0.05s}
+  .audio-wave span:nth-child(5){height:7px;animation-delay:0.15s}
+  .audio-wave span:nth-child(6){height:11px;animation-delay:0.25s}
+  .audio-wave span:nth-child(7){height:5px;animation-delay:0.08s}
+  .audio-wave span:nth-child(8){height:13px;animation-delay:0.18s}
+  @keyframes wave { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.4)} }
+
   audio { width: 100%; height: 28px; }
 
-  .hr-display { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 18px; background: var(--green-bg); border-radius: 10px; margin-bottom: 10px; }
-  .hr-number { font-family: var(--mono); font-size: 48px; font-weight: 600; color: var(--green); line-height: 1; }
-  .hr-unit { font-size: 13px; color: var(--green); font-weight: 500; }
-  .hr-icon { font-size: 26px; animation: heartbeat 1s infinite; }
-  @keyframes heartbeat { 0%,100%{transform:scale(1)} 15%{transform:scale(1.3)} 30%{transform:scale(1)} 45%{transform:scale(1.15)} }
-
+  /* History */
   .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .history-table th { text-align: left; padding: 9px 16px; font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--surface2); }
-  .history-table td { padding: 9px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text2); }
+  .history-table td { padding: 9px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .history-table tr:last-child td { border-bottom: none; }
+  .history-table tr { transition: background 0.15s; }
   .history-table tr:hover td { background: var(--surface2); }
+  .history-table tr.new-row td { animation: rowIn 0.3s ease; }
+  @keyframes rowIn { from{background:var(--accent-bg)} to{background:transparent} }
   .payload-cell { font-family: var(--mono); font-size: 11px; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
   .time-cell { font-family: var(--mono); font-size: 11px; color: var(--muted); }
   .size-cell { font-family: var(--mono); font-size: 11px; color: var(--muted); }
@@ -160,31 +225,21 @@
 <div class="container">
 
   <div class="status-bar">
+    <div class="status-ripple connecting" id="status-ripple"></div>
     <div class="status-dot connecting" id="status-dot"></div>
     <div class="status-text" id="status-text">正在连接到 <strong>broker.hivemq.com</strong>（加密 WSS）...</div>
   </div>
 
   <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">文字消息</div>
-      <div class="stat-value blue" id="count-text">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">音频包</div>
-      <div class="stat-value purple" id="count-audio">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">心率数据</div>
-      <div class="stat-value green" id="count-hr">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">运行时间</div>
-      <div class="stat-value dark" id="uptime" style="font-size:20px;padding-top:4px">00:00</div>
-    </div>
+    <div class="stat-card"><div class="stat-label">文字消息</div><div class="stat-value blue" id="count-text">0</div></div>
+    <div class="stat-card"><div class="stat-label">音频包</div><div class="stat-value purple" id="count-audio">0</div></div>
+    <div class="stat-card"><div class="stat-label">ADC 采样数</div><div class="stat-value green" id="count-hr">0</div></div>
+    <div class="stat-card"><div class="stat-label">运行时间</div><div class="stat-value dark" id="uptime" style="font-size:20px;padding-top:4px">00:00</div></div>
   </div>
 
   <div class="main-grid">
 
+    <!-- Text -->
     <div class="card">
       <div class="card-header">
         <span class="card-title">文字消息</span>
@@ -201,9 +256,10 @@
       </div>
     </div>
 
+    <!-- ADC Datastream -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">心率数据</span>
+        <span class="card-title">ADC 数据流</span>
         <div class="header-right">
           <span class="topic-tag tag-green">test/heartrate</span>
           <span class="count-badge" id="badge-hr">0</span>
@@ -211,17 +267,26 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="hr-display">
-          <span class="hr-icon" id="hr-icon" style="opacity:0.3">♥</span>
-          <span class="hr-number" id="hr-number" style="color:var(--muted2)">--</span>
-          <span class="hr-unit" id="hr-unit" style="color:var(--muted2)">BPM</span>
+        <div class="chart-wrap">
+          <div class="chart-header">
+            <span class="chart-label">原始 ADC 值</span>
+            <span class="chart-val" id="hr-current">--</span>
+          </div>
+          <canvas id="hrCanvas" width="600" height="100"></canvas>
+          <div class="chart-axis">
+            <span id="axis-min">min: --</span>
+            <span id="axis-max">max: --</span>
+          </div>
         </div>
-        <ul class="msg-list" id="hr-list" style="min-height:80px;max-height:180px">
-          <li class="empty-hint" id="hr-empty" style="height:80px">等待心率数据...</li>
-        </ul>
+        <div class="hr-stats">
+          <div class="hr-stat"><div class="hr-stat-label">最小值</div><div class="hr-stat-val" id="hr-min">--</div></div>
+          <div class="hr-stat"><div class="hr-stat-label">平均值</div><div class="hr-stat-val" id="hr-avg">--</div></div>
+          <div class="hr-stat"><div class="hr-stat-label">最大值</div><div class="hr-stat-val" id="hr-max">--</div></div>
+        </div>
       </div>
     </div>
 
+    <!-- Audio -->
     <div class="card span-2">
       <div class="card-header">
         <span class="card-title">音频数据</span>
@@ -238,6 +303,7 @@
       </div>
     </div>
 
+    <!-- History -->
     <div class="card span-2">
       <div class="card-header">
         <span class="card-title">历史记录</span>
@@ -245,12 +311,8 @@
       </div>
       <div style="overflow-x:auto">
         <table class="history-table">
-          <thead>
-            <tr><th>时间</th><th>Topic</th><th>内容 / 描述</th><th>大小</th></tr>
-          </thead>
-          <tbody id="history-body">
-            <tr><td class="no-data-row" colspan="4">暂无数据</td></tr>
-          </tbody>
+          <thead><tr><th>时间</th><th>Topic</th><th>内容 / 描述</th><th>大小</th></tr></thead>
+          <tbody id="history-body"><tr><td class="no-data-row" colspan="4">暂无数据</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -259,20 +321,97 @@
 </div>
 
 <script>
-const BROKER  = 'broker.hivemq.com';
-const PORT    = 8884;
-const TOPICS  = ['test4', 'test/audio', 'test/heartrate'];
-const MAX_TEXT = 50, MAX_HR = 30, MAX_HIST = 100;
+// ===== Config =====
+const BROKER = 'broker.hivemq.com';
+const PORT   = 8884;
+const TOPICS = ['test4', 'test/audio', 'test/heartrate'];
+const CHART_POINTS = 80;   // 折线图保留最近80个点
+const MAX_HIST = 100;
 
-const startTime = Date.now();
+// ===== Uptime =====
+const t0 = Date.now();
 setInterval(() => {
-  const s = Math.floor((Date.now()-startTime)/1000);
+  const s = Math.floor((Date.now()-t0)/1000);
   document.getElementById('uptime').textContent =
     String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 }, 1000);
 
-const clientId = 'webui_' + Math.random().toString(16).slice(2,8);
+// ===== Canvas chart =====
+const canvas  = document.getElementById('hrCanvas');
+const ctx     = canvas.getContext('2d');
+let hrBuffer  = [];   // 原始 ADC 数据点
+let hrMin = Infinity, hrMax = -Infinity, hrSum = 0, hrCount2 = 0;
 
+function drawChart() {
+  const W = canvas.offsetWidth * window.devicePixelRatio || 600;
+  const H = canvas.offsetHeight * window.devicePixelRatio || 100;
+  canvas.width = W; canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  if (hrBuffer.length < 2) {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `${12 * window.devicePixelRatio}px Inter`;
+    ctx.textAlign = 'center';
+    ctx.fillText('等待数据...', W/2, H/2);
+    return;
+  }
+
+  const minVal = Math.min(...hrBuffer);
+  const maxVal = Math.max(...hrBuffer);
+  const range  = maxVal - minVal || 1;
+  const pad    = H * 0.12;
+
+  const xStep = W / (hrBuffer.length - 1);
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(5,150,105,0.25)');
+  grad.addColorStop(1, 'rgba(5,150,105,0)');
+
+  ctx.beginPath();
+  hrBuffer.forEach((v, i) => {
+    const x = i * xStep;
+    const y = pad + (1 - (v - minVal) / range) * (H - pad*2);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  // Fill area
+  ctx.lineTo((hrBuffer.length-1)*xStep, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  hrBuffer.forEach((v, i) => {
+    const x = i * xStep;
+    const y = pad + (1 - (v - minVal) / range) * (H - pad*2);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#059669';
+  ctx.lineWidth = 1.5 * window.devicePixelRatio;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Latest point dot
+  const lastV = hrBuffer[hrBuffer.length-1];
+  const lx = (hrBuffer.length-1) * xStep;
+  const ly = pad + (1 - (lastV - minVal) / range) * (H - pad*2);
+  ctx.beginPath();
+  ctx.arc(lx, ly, 3 * window.devicePixelRatio, 0, Math.PI*2);
+  ctx.fillStyle = '#059669';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(lx, ly, 5 * window.devicePixelRatio, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(5,150,105,0.35)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// ===== MQTT =====
+let tc=0, ac=0, hc=0;
+
+const clientId = 'webui_' + Math.random().toString(16).slice(2,8);
 setStatus('connecting', `正在连接 <strong>${BROKER}</strong>（WSS 加密）...`);
 
 const client = mqtt.connect(`wss://${BROKER}:${PORT}/mqtt`, {
@@ -289,86 +428,163 @@ client.on('offline', () => setStatus('error', '连接断开，等待重连...'))
 
 client.on('message', (topic, payload) => {
   const t = new Date().toLocaleTimeString('zh-CN',{hour12:false});
-  if (topic==='test4') handleText(payload,t);
-  else if (topic==='test/audio') handleAudio(payload,t);
-  else if (topic==='test/heartrate') handleHR(payload,t);
-  addHistory(topic,payload,t);
+  if      (topic === 'test4')            handleText(payload, t);
+  else if (topic === 'test/audio')       handleAudio(payload, t);
+  else if (topic === 'test/heartrate')   handleHR(payload, t);
+  addHistory(topic, payload, t);
 });
 
-let tc=0,ac=0,hc=0;
-
-function handleText(payload,t){
-  const text=dec(payload); tc++;
-  document.getElementById('count-text').textContent=tc;
-  document.getElementById('badge-text').textContent=tc;
+// ===== Handlers =====
+function handleText(payload, t) {
+  const text = dec(payload); tc++;
+  bumpStat('count-text'); bumpStat('badge-text', tc);
+  document.getElementById('count-text').textContent = tc;
+  document.getElementById('badge-text').textContent = tc;
   rmEmpty('text-empty');
-  const li=document.createElement('li');
-  li.className='msg-item';
-  li.innerHTML=`<span class="msg-time">${t}</span><span class="msg-content">${esc(text)}</span>`;
-  const list=document.getElementById('msg-list');
-  list.prepend(li); trim(list,50);
+  const li = document.createElement('li');
+  li.className = 'msg-item';
+  li.innerHTML = `<span class="msg-time">${t}</span><span class="msg-content typing">${esc(text)}</span>`;
+  const list = document.getElementById('msg-list');
+  list.prepend(li);
+  trim(list, 50);
+  // Remove typing class after animation
+  setTimeout(() => { const c = li.querySelector('.msg-content'); if(c) c.classList.remove('typing'); }, 500);
 }
 
-function handleHR(payload,t){
-  const raw=dec(payload).trim(); hc++;
-  document.getElementById('count-hr').textContent=hc;
-  document.getElementById('badge-hr').textContent=hc;
-  const num=parseFloat(raw.replace(/[^0-9.]/g,''));
-  if(!isNaN(num)){
-    document.getElementById('hr-number').textContent=Math.round(num);
-    document.getElementById('hr-number').style.color='';
-    document.getElementById('hr-unit').style.color='';
-    document.getElementById('hr-icon').style.opacity='1';
+function handleHR(payload, t) {
+  const raw = dec(payload).trim(); hc++;
+  document.getElementById('count-hr').textContent = hc;
+  document.getElementById('badge-hr').textContent = hc;
+
+  const num = parseFloat(raw.replace(/[^0-9.]/g,''));
+  if (!isNaN(num)) {
+    hrBuffer.push(num);
+    if (hrBuffer.length > CHART_POINTS) hrBuffer.shift();
+
+    // Stats
+    hrMin = Math.min(hrMin, num);
+    hrMax = Math.max(hrMax, num);
+    hrSum += num; hrCount2++;
+    const avg = Math.round(hrSum / hrCount2);
+
+    const cur = document.getElementById('hr-current');
+    cur.textContent = Math.round(num);
+    cur.classList.remove('flash');
+    void cur.offsetWidth; // reflow
+    cur.classList.add('flash');
+
+    document.getElementById('hr-min').textContent = Math.round(hrMin);
+    document.getElementById('hr-avg').textContent = avg;
+    document.getElementById('hr-max').textContent = Math.round(hrMax);
+    document.getElementById('axis-min').textContent = 'min: ' + Math.round(hrMin);
+    document.getElementById('axis-max').textContent = 'max: ' + Math.round(hrMax);
+
+    drawChart();
   }
-  rmEmpty('hr-empty');
-  const li=document.createElement('li');
-  li.className='msg-item green';
-  li.innerHTML=`<span class="msg-time">${t}</span><span class="msg-content">${esc(raw)}</span>`;
-  const list=document.getElementById('hr-list');
-  list.prepend(li); trim(list,30);
 }
 
-function handleAudio(payload,t){
+function handleAudio(payload, t) {
   ac++;
-  document.getElementById('count-audio').textContent=ac;
-  document.getElementById('badge-audio').textContent=ac;
-  const empty=document.getElementById('audio-empty');
-  if(empty) empty.remove();
-  const blob=new Blob([payload],{type:'audio/wav'});
-  const url=URL.createObjectURL(blob);
-  const div=document.createElement('div');
-  div.className='audio-item';
-  div.innerHTML=`<div class="audio-meta"><span class="audio-label">音频 #${ac} · ${t}</span><span class="audio-size">${(payload.byteLength/1024).toFixed(1)} KB</span></div><audio controls src="${url}"></audio>`;
-  const c=document.getElementById('audio-container');
+  document.getElementById('count-audio').textContent = ac;
+  document.getElementById('badge-audio').textContent = ac;
+  const empty = document.getElementById('audio-empty');
+  if (empty) empty.remove();
+
+  const blob = new Blob([payload], {type:'audio/wav'});
+  const url  = URL.createObjectURL(blob);
+  const div  = document.createElement('div');
+  div.className = 'audio-item';
+  div.innerHTML = `
+    <div class="audio-meta">
+      <span class="audio-label">音频 #${ac} &nbsp;·&nbsp; ${t}</span>
+      <span class="audio-size">${(payload.byteLength/1024).toFixed(1)} KB</span>
+    </div>
+    <div class="audio-wave">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <audio controls src="${url}"></audio>
+  `;
+  const c = document.getElementById('audio-container');
   c.prepend(div);
-  const items=c.querySelectorAll('.audio-item');
-  if(items.length>10){ const old=items[items.length-1]; const a=old.querySelector('audio'); if(a) URL.revokeObjectURL(a.src); old.remove(); }
+  const items = c.querySelectorAll('.audio-item');
+  if (items.length > 10) {
+    const old = items[items.length-1];
+    const a = old.querySelector('audio');
+    if (a) URL.revokeObjectURL(a.src);
+    old.remove();
+  }
 }
 
-function addHistory(topic,payload,t){
-  const tbody=document.getElementById('history-body');
-  const noData=tbody.querySelector('.no-data-row');
-  if(noData) noData.closest('tr').remove();
-  const tagMap={'test4':'tag-blue','test/audio':'tag-purple','test/heartrate':'tag-green'};
-  const isText=(topic!=='test/audio');
-  const desc=isText?esc(dec(payload)):'[音频数据]';
-  const size=isText?(payload.byteLength+' B'):((payload.byteLength/1024).toFixed(1)+' KB');
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="time-cell">${t}</td><td><span class="topic-tag ${tagMap[topic]||'tag-blue'}">${esc(topic)}</span></td><td class="payload-cell">${desc}</td><td class="size-cell">${size}</td>`;
+function addHistory(topic, payload, t) {
+  const tbody = document.getElementById('history-body');
+  const noData = tbody.querySelector('.no-data-row');
+  if (noData) noData.closest('tr').remove();
+
+  const tagMap = {'test4':'tag-blue','test/audio':'tag-purple','test/heartrate':'tag-green'};
+  const isText = (topic !== 'test/audio');
+  const desc   = isText ? esc(dec(payload)) : '[音频数据]';
+  const size   = isText ? (payload.byteLength+' B') : ((payload.byteLength/1024).toFixed(1)+' KB');
+
+  const tr = document.createElement('tr');
+  tr.className = 'new-row';
+  tr.innerHTML = `
+    <td class="time-cell">${t}</td>
+    <td><span class="topic-tag ${tagMap[topic]||'tag-blue'}">${esc(topic)}</span></td>
+    <td class="payload-cell">${desc}</td>
+    <td class="size-cell">${size}</td>
+  `;
   tbody.prepend(tr);
-  while(tbody.rows.length>MAX_HIST) tbody.removeChild(tbody.lastChild);
+  setTimeout(() => tr.classList.remove('new-row'), 400);
+  while (tbody.rows.length > MAX_HIST) tbody.removeChild(tbody.lastChild);
 }
 
-function clearText(){ document.getElementById('msg-list').innerHTML='<li class="empty-hint" id="text-empty">等待消息...</li>'; tc=0; document.getElementById('count-text').textContent=0; document.getElementById('badge-text').textContent=0; }
-function clearHR(){ document.getElementById('hr-list').innerHTML='<li class="empty-hint" id="hr-empty" style="height:80px">等待心率数据...</li>'; document.getElementById('hr-number').textContent='--'; document.getElementById('hr-number').style.color='var(--muted2)'; document.getElementById('hr-unit').style.color='var(--muted2)'; document.getElementById('hr-icon').style.opacity='0.3'; hc=0; document.getElementById('count-hr').textContent=0; document.getElementById('badge-hr').textContent=0; }
-function clearAudio(){ const c=document.getElementById('audio-container'); c.querySelectorAll('audio').forEach(a=>URL.revokeObjectURL(a.src)); c.innerHTML='<div class="empty-hint" id="audio-empty" style="height:80px">等待音频...</div>'; ac=0; document.getElementById('count-audio').textContent=0; document.getElementById('badge-audio').textContent=0; }
-function clearHistory(){ document.getElementById('history-body').innerHTML='<tr><td class="no-data-row" colspan="4">暂无数据</td></tr>'; }
+// ===== Clear =====
+function clearText() {
+  document.getElementById('msg-list').innerHTML='<li class="empty-hint" id="text-empty">等待消息...</li>';
+  tc=0; document.getElementById('count-text').textContent=0; document.getElementById('badge-text').textContent=0;
+}
+function clearHR() {
+  hrBuffer=[]; hrMin=Infinity; hrMax=-Infinity; hrSum=0; hrCount2=0;
+  document.getElementById('hr-current').textContent='--';
+  ['hr-min','hr-avg','hr-max','axis-min','axis-max'].forEach(id=>{
+    document.getElementById(id).textContent = id.includes('axis') ? id.replace('axis-','')+'--' : '--';
+  });
+  document.getElementById('axis-min').textContent='min: --';
+  document.getElementById('axis-max').textContent='max: --';
+  hc=0; document.getElementById('count-hr').textContent=0; document.getElementById('badge-hr').textContent=0;
+  drawChart();
+}
+function clearAudio() {
+  const c=document.getElementById('audio-container');
+  c.querySelectorAll('audio').forEach(a=>URL.revokeObjectURL(a.src));
+  c.innerHTML='<div class="empty-hint" id="audio-empty" style="height:80px">等待音频...</div>';
+  ac=0; document.getElementById('count-audio').textContent=0; document.getElementById('badge-audio').textContent=0;
+}
+function clearHistory() {
+  document.getElementById('history-body').innerHTML='<tr><td class="no-data-row" colspan="4">暂无数据</td></tr>';
+}
 
-function setStatus(s,msg){ document.getElementById('status-dot').className='status-dot '+s; document.getElementById('status-text').innerHTML=msg; }
-function dec(buf){ return new TextDecoder('utf-8').decode(buf); }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function rmEmpty(id){ const el=document.getElementById(id); if(el) el.remove(); }
-function trim(list,max){ while(list.children.length>max) list.removeChild(list.lastChild); }
+// ===== Helpers =====
+function setStatus(s, msg) {
+  document.getElementById('status-dot').className   = 'status-dot '   + s;
+  document.getElementById('status-ripple').className = 'status-ripple ' + s;
+  document.getElementById('status-text').innerHTML  = msg;
+}
+function bumpStat(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val !== undefined) el.textContent = val;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+}
+function dec(buf) { return new TextDecoder('utf-8').decode(buf); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function rmEmpty(id) { const el=document.getElementById(id); if(el) el.remove(); }
+function trim(list, max) { while(list.children.length>max) list.removeChild(list.lastChild); }
+
+// Initial empty chart
+drawChart();
+window.addEventListener('resize', drawChart);
 </script>
 </body>
 </html>
