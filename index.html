@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -217,7 +217,7 @@
   <div class="nav-left">
     <span class="nav-logo">MQTT</span>
     <span class="nav-sep">/</span>
-    <span class="nav-title">IoT Monitor</span>
+    <span class="nav-title">IoT Dashboard</span>
   </div>
   <div class="broker-chip">broker.hivemq.com : 8884 (WSS)</div>
 </nav>
@@ -227,14 +227,14 @@
   <div class="status-bar">
     <div class="status-ripple connecting" id="status-ripple"></div>
     <div class="status-dot connecting" id="status-dot"></div>
-    <div class="status-text" id="status-text">正在连接到 <strong>broker.hivemq.com</strong>（加密 WSS）...</div>
+    <div class="status-text" id="status-text">Connecting to <strong>broker.hivemq.com</strong> (WSS encrypted)...</div>
   </div>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">文字消息</div><div class="stat-value blue" id="count-text">0</div></div>
-    <div class="stat-card"><div class="stat-label">音频包</div><div class="stat-value purple" id="count-audio">0</div></div>
-    <div class="stat-card"><div class="stat-label">ADC 采样数</div><div class="stat-value green" id="count-hr">0</div></div>
-    <div class="stat-card"><div class="stat-label">运行时间</div><div class="stat-value dark" id="uptime" style="font-size:20px;padding-top:4px">00:00</div></div>
+    <div class="stat-card"><div class="stat-label">Text Messages</div><div class="stat-value blue" id="count-text">0</div></div>
+    <div class="stat-card"><div class="stat-label">Audio Packets</div><div class="stat-value purple" id="count-audio">0</div></div>
+    <div class="stat-card"><div class="stat-label">ADC Samples</div><div class="stat-value green" id="count-hr">0</div></div>
+    <div class="stat-card"><div class="stat-label">Uptime</div><div class="stat-value dark" id="uptime" style="font-size:20px;padding-top:4px">00:00</div></div>
   </div>
 
   <div class="main-grid">
@@ -242,16 +242,16 @@
     <!-- Text -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">文字消息</span>
+        <span class="card-title">Text Messages</span>
         <div class="header-right">
           <span class="topic-tag tag-blue">test4</span>
           <span class="count-badge" id="badge-text">0</span>
-          <button class="btn-clear" onclick="clearText()">清空</button>
+          <button class="btn-clear" onclick="clearText()">Clear</button>
         </div>
       </div>
       <div class="card-body">
         <ul class="msg-list" id="msg-list">
-          <li class="empty-hint" id="text-empty">等待消息...</li>
+          <li class="empty-hint" id="text-empty">Waiting for messages...</li>
         </ul>
       </div>
     </div>
@@ -259,17 +259,17 @@
     <!-- ADC Datastream -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">ADC 数据流</span>
+        <span class="card-title">ADC Data Stream</span>
         <div class="header-right">
           <span class="topic-tag tag-green">test/heartrate</span>
           <span class="count-badge" id="badge-hr">0</span>
-          <button class="btn-clear" onclick="clearHR()">清空</button>
+          <button class="btn-clear" onclick="clearHR()">Clear</button>
         </div>
       </div>
       <div class="card-body">
         <div class="chart-wrap">
           <div class="chart-header">
-            <span class="chart-label">原始 ADC 值</span>
+            <span class="chart-label">Raw ADC Value</span>
             <span class="chart-val" id="hr-current">--</span>
           </div>
           <canvas id="hrCanvas" width="600" height="100"></canvas>
@@ -279,9 +279,9 @@
           </div>
         </div>
         <div class="hr-stats">
-          <div class="hr-stat"><div class="hr-stat-label">最小值</div><div class="hr-stat-val" id="hr-min">--</div></div>
-          <div class="hr-stat"><div class="hr-stat-label">平均值</div><div class="hr-stat-val" id="hr-avg">--</div></div>
-          <div class="hr-stat"><div class="hr-stat-label">最大值</div><div class="hr-stat-val" id="hr-max">--</div></div>
+          <div class="hr-stat"><div class="hr-stat-label">Min</div><div class="hr-stat-val" id="hr-min">--</div></div>
+          <div class="hr-stat"><div class="hr-stat-label">Avg</div><div class="hr-stat-val" id="hr-avg">--</div></div>
+          <div class="hr-stat"><div class="hr-stat-label">Max</div><div class="hr-stat-val" id="hr-max">--</div></div>
         </div>
       </div>
     </div>
@@ -289,16 +289,16 @@
     <!-- Audio -->
     <div class="card span-2">
       <div class="card-header">
-        <span class="card-title">音频数据</span>
+        <span class="card-title">Audio Data</span>
         <div class="header-right">
           <span class="topic-tag tag-purple">test/audio</span>
           <span class="count-badge" id="badge-audio">0</span>
-          <button class="btn-clear" onclick="clearAudio()">清空</button>
+          <button class="btn-clear" onclick="clearAudio()">Clear</button>
         </div>
       </div>
       <div class="card-body">
         <div id="audio-container">
-          <div class="empty-hint" id="audio-empty" style="height:80px">等待音频...</div>
+          <div class="empty-hint" id="audio-empty" style="height:80px">Waiting for audio...</div>
         </div>
       </div>
     </div>
@@ -306,13 +306,13 @@
     <!-- History -->
     <div class="card span-2">
       <div class="card-header">
-        <span class="card-title">历史记录</span>
-        <button class="btn-clear" onclick="clearHistory()">清空</button>
+        <span class="card-title">Message History</span>
+        <button class="btn-clear" onclick="clearHistory()">Clear</button>
       </div>
       <div style="overflow-x:auto">
         <table class="history-table">
-          <thead><tr><th>时间</th><th>Topic</th><th>内容 / 描述</th><th>大小</th></tr></thead>
-          <tbody id="history-body"><tr><td class="no-data-row" colspan="4">暂无数据</td></tr></tbody>
+          <thead><tr><th>Time</th><th>Topic</th><th>Content / Description</th><th>Size</th></tr></thead>
+          <tbody id="history-body"><tr><td class="no-data-row" colspan="4">No data yet</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -352,7 +352,7 @@ function drawChart() {
     ctx.fillStyle = '#9ca3af';
     ctx.font = `${12 * window.devicePixelRatio}px Inter`;
     ctx.textAlign = 'center';
-    ctx.fillText('等待数据...', W/2, H/2);
+    ctx.fillText('Waiting for data...', W/2, H/2);
     return;
   }
 
@@ -412,22 +412,22 @@ function drawChart() {
 let tc=0, ac=0, hc=0;
 
 const clientId = 'webui_' + Math.random().toString(16).slice(2,8);
-setStatus('connecting', `正在连接 <strong>${BROKER}</strong>（WSS 加密）...`);
+setStatus('connecting', `Connecting to <strong>${BROKER}</strong> (WSS encrypted)...`);
 
 const client = mqtt.connect(`wss://${BROKER}:${PORT}/mqtt`, {
   clientId, clean: true, connectTimeout: 12000, reconnectPeriod: 4000
 });
 
 client.on('connect', () => {
-  setStatus('connected', `已连接 ✓ &nbsp;<strong>${BROKER}</strong>&nbsp;·&nbsp; ClientID: ${clientId}`);
+  setStatus('connected', `Connected ✓ &nbsp;<strong>${BROKER}</strong>&nbsp;·&nbsp; ClientID: ${clientId}`);
   TOPICS.forEach(t => client.subscribe(t));
 });
-client.on('reconnect', () => setStatus('connecting', '重新连接中...'));
-client.on('error', e => setStatus('error', `连接错误: ${e.message}`));
-client.on('offline', () => setStatus('error', '连接断开，等待重连...'));
+client.on('reconnect', () => setStatus('connecting', 'Reconnecting...'));
+client.on('error', e => setStatus('error', `Connection error: ${e.message}`));
+client.on('offline', () => setStatus('error', 'Disconnected, waiting to reconnect...'));
 
 client.on('message', (topic, payload) => {
-  const t = new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  const t = new Date().toLocaleTimeString('en-GB',{hour12:false});
   if      (topic === 'test4')            handleText(payload, t);
   else if (topic === 'test/audio')       handleAudio(payload, t);
   else if (topic === 'test/heartrate')   handleHR(payload, t);
@@ -496,7 +496,7 @@ function handleAudio(payload, t) {
   div.className = 'audio-item';
   div.innerHTML = `
     <div class="audio-meta">
-      <span class="audio-label">音频 #${ac} &nbsp;·&nbsp; ${t}</span>
+      <span class="audio-label">Audio #${ac} &nbsp;·&nbsp; ${t}</span>
       <span class="audio-size">${(payload.byteLength/1024).toFixed(1)} KB</span>
     </div>
     <div class="audio-wave">
@@ -523,7 +523,7 @@ function addHistory(topic, payload, t) {
 
   const tagMap = {'test4':'tag-blue','test/audio':'tag-purple','test/heartrate':'tag-green'};
   const isText = (topic !== 'test/audio');
-  const desc   = isText ? esc(dec(payload)) : '[音频数据]';
+  const desc   = isText ? esc(dec(payload)) : '[Audio data]';
   const size   = isText ? (payload.byteLength+' B') : ((payload.byteLength/1024).toFixed(1)+' KB');
 
   const tr = document.createElement('tr');
@@ -541,7 +541,7 @@ function addHistory(topic, payload, t) {
 
 // ===== Clear =====
 function clearText() {
-  document.getElementById('msg-list').innerHTML='<li class="empty-hint" id="text-empty">等待消息...</li>';
+  document.getElementById('msg-list').innerHTML='<li class="empty-hint" id="text-empty">Waiting for messages...</li>';
   tc=0; document.getElementById('count-text').textContent=0; document.getElementById('badge-text').textContent=0;
 }
 function clearHR() {
@@ -558,11 +558,11 @@ function clearHR() {
 function clearAudio() {
   const c=document.getElementById('audio-container');
   c.querySelectorAll('audio').forEach(a=>URL.revokeObjectURL(a.src));
-  c.innerHTML='<div class="empty-hint" id="audio-empty" style="height:80px">等待音频...</div>';
+  c.innerHTML='<div class="empty-hint" id="audio-empty" style="height:80px">Waiting for audio...</div>';
   ac=0; document.getElementById('count-audio').textContent=0; document.getElementById('badge-audio').textContent=0;
 }
 function clearHistory() {
-  document.getElementById('history-body').innerHTML='<tr><td class="no-data-row" colspan="4">暂无数据</td></tr>';
+  document.getElementById('history-body').innerHTML='<tr><td class="no-data-row" colspan="4">No data yet</td></tr>';
 }
 
 // ===== Helpers =====
